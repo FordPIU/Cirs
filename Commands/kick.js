@@ -1,6 +1,6 @@
 const { guildList } = require('../Config.json');
 const { logDiscipline } = require('../Logger/_Logger');
-const { GetSyncString } = require('./_Utils')
+const { GetSyncString, ModerationCommandsCheck } = require('./_Utils')
 
 module.exports = async function(interaction)
 {
@@ -11,6 +11,10 @@ module.exports = async function(interaction)
 
     // Console Write
     console.log(`\nCommand Call: Kick\nTarget: ${Target.username}\nFrom: ${SyncString}\nFor: ${Reason}`);
+
+    // Check Permissions
+    let HasPermissions = await ModerationCommandsCheck(Target, interaction);
+    if (HasPermissions == false) { return; }
 
     // Send Target DM.
     Target.send(`You have been kicked from ${SyncString}.\n\n**By:** ${interaction.user.username}\n**For:** ${Reason}.`)

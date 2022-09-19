@@ -38,6 +38,24 @@ const commands = [
 			.setDescription('Do we sync across all servers.')
 			.setRequired(true)),
 
+	// Ban Command
+	new SlashCommandBuilder()
+	.setName('ban')
+	.setDescription('Ban a user.')
+	.setDefaultMemberPermissions(PermissionFlagsBits.KickMembers)
+	.addUserOption(option => option
+		.setName('target')
+		.setDescription('Person to kick.')
+		.setRequired(true))
+	.addStringOption(option => option
+		.setName('reason')
+		.setDescription('Reason for the kick.')
+		.setRequired(true))
+	.addBooleanOption(option => option
+		.setName('sync')
+		.setDescription('Do we sync across all servers.')
+		.setRequired(true)),
+
 ]
 .map(command => command.toJSON());
 

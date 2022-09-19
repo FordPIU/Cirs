@@ -1,4 +1,5 @@
 const { logDiscipline } = require('../Logger/_Logger');
+const { ModerationCommandsCheck } = require('./_Utils')
 
 module.exports = async function(interaction)
 {
@@ -7,6 +8,10 @@ module.exports = async function(interaction)
 
     // Console Write
     console.log(`\nCommand Call: Warn\nTarget: ${Target.username}\nFor: ${Reason}`);
+
+    // Check Permissions
+    let HasPermissions = await ModerationCommandsCheck(Target, interaction);
+    if (HasPermissions == false) { return; }
 
     // Send Target DM.
     Target.send(`You have been warned.\n\n**By:** ${interaction.user.username}\n**For:** ${Reason}.`)
