@@ -10,15 +10,12 @@ client.once('ready', () => {
 	console.log('Bot Logged In.');
 });
 
-// Init External Files
-require('./Commands/_Deployer');
-
 // Command Passer
 client.on('interactionCreate', async interaction => {
 	if (!interaction.isChatInputCommand()) return;
 
 	const { commandName } = interaction;
-	console.log(commandName)
+
 	require('./Commands/' + commandName)(interaction);
 });
 

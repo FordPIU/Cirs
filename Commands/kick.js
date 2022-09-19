@@ -1,21 +1,16 @@
 const { guildList } = require('../Config.json');
 const { logDiscipline } = require('../Logger/_Logger');
-const SyncKickString = "all servers";
-
-function e(isSync, inter)
-{
-    if(isSync) { return SyncKickString } else { return inter.guild.name };
-}
+const { GetSyncString } = require('./_Utils')
 
 module.exports = async function(interaction)
 {
     let Target = interaction.options.getUser('target');
     let Reason = interaction.options.getString('reason');
     let Sync   = interaction.options.getBoolean('sync');
-    let SyncString = e(Sync, interaction);
+    let SyncString = GetSyncString(Sync, interaction);
 
     // Console Write
-    console.log(`\nCommand Call: Kick User\nTarget: ${Target.username}\nFrom: ${SyncString}\nFor: ${Reason}`);
+    console.log(`\nCommand Call: Kick\nTarget: ${Target.username}\nFrom: ${SyncString}\nFor: ${Reason}`);
 
     // Send Target DM.
     Target.send(`You have been kicked from ${SyncString}.\n\n**By:** ${interaction.user.username}\n**For:** ${Reason}.`)

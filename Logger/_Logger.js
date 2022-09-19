@@ -23,10 +23,9 @@ exports.logDiscipline = async function(Type, Target, Data)
         "Data": Data
     };
 
-    if (fs.existsSync('./Users/' + Target.id)) {
-        UserProfile = fs.readFileSync('./Users/' + Target.id);
+    if (fs.existsSync('Logger/Users/' + Target.id + ".json")) {
+        UserProfile = fs.readFileSync('Logger/Users/' + Target.id + ".json");
         Profile = JSON.parse(UserProfile);
-        console.log("Exists");
     } else {
         Profile = {
             "Username": Target.username,
@@ -35,10 +34,13 @@ exports.logDiscipline = async function(Type, Target, Data)
             "Disciplinary_Actions_Count": 0,
             "Disciplinary_Actions": {}
         }
-        console.log("Created");
     }
     Profile.Disciplinary_Actions_Count += 1;
-    Profile.Disciplinary_Actions[Disciplinary_Actions_Count] = InsertData;
+    Profile.Disciplinary_Actions[Profile.Disciplinary_Actions_Count] = InsertData;
 
-    fs.writeFile('./Users/' + Target.id, Profile);
+    fs.writeFile('Logger/Users/' + Target.id + ".json", JSON.stringify(Profile), err => {
+        if (err) {
+            console.error(err);
+        }
+    });
 }
