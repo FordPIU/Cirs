@@ -1,5 +1,5 @@
 const { guildList } = require('../Config.json');
-const { logDiscipline } = require('../Logger/_Logger');
+const { logDiscipline } = require('../Profiles/_Handler');
 const { GetSyncString, ModerationCommandsCheck } = require('./_Utils')
 
 module.exports = async function(interaction)
@@ -7,10 +7,10 @@ module.exports = async function(interaction)
     let Target = interaction.options.getUser('target');
     let Reason = interaction.options.getString('reason');
     let Sync   = interaction.options.getBoolean('sync');
-    let SyncString = GetSyncString(Sync, interaction);
+    let SyncString = await GetSyncString(Sync, interaction);
 
     // Console Write
-    console.log(`\nCommand Call: Kick\nTarget: ${Target.username}\nFrom: ${SyncString}\nFor: ${Reason}`);
+    console.log(`\nCommand Call: Kick User\nTarget: ${Target.username}\nFrom: ${SyncString}\nFor: ${Reason}`);
 
     // Check Permissions
     let HasPermissions = await ModerationCommandsCheck(Target, interaction);

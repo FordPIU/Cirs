@@ -1,4 +1,5 @@
 const {clientId} = require('../Config.json')
+const {GetTypes} = require('../Profiles/_Handler')
 const SyncKickString = "**All Servers**";
 exports.GetSyncString = async function(IsSync, interaction)
 {
@@ -23,9 +24,10 @@ exports.ModerationCommandsCheck = async function(Target, interaction)
         return false; }
 
     // Role check
+    if (interaction.guild.members.fetch(Target.id).roles != null) {
     if (interaction.member.roles.highest.position <= interaction.guild.members.fetch(Target.id).roles.highest.position) {
         interaction.reply({content: `You cannot Moderate someone above or equal to you.`});
-        return false; }
+        return false; }}
 
     return true;
 }

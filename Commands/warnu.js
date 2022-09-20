@@ -1,4 +1,4 @@
-const { logDiscipline } = require('../Logger/_Logger');
+const { logDiscipline } = require('../Profiles/_Handler');
 const { ModerationCommandsCheck } = require('./_Utils')
 
 module.exports = async function(interaction)
@@ -7,7 +7,7 @@ module.exports = async function(interaction)
     let Reason = interaction.options.getString('reason');
 
     // Console Write
-    console.log(`\nCommand Call: Warn\nTarget: ${Target.username}\nFor: ${Reason}`);
+    console.log(`\nCommand Call: Warn User\nTarget: ${Target.username}\nFor: ${Reason}`);
 
     // Check Permissions
     let HasPermissions = await ModerationCommandsCheck(Target, interaction);

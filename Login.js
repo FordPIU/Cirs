@@ -1,9 +1,15 @@
 // Require the necessary discord.js classes
 const { Client, GatewayIntentBits } = require('discord.js');
+const { checkDurations } = require('./Profiles/_Handler');
 const { token } = require('./Config.json');
 
 // Create a new client instance
-const client = new Client({ intents: [GatewayIntentBits.Guilds] });
+const client = new Client({
+	intents: [
+		GatewayIntentBits.Guilds,
+		GatewayIntentBits.GuildMessages
+	]
+});
 
 // When the client is ready, run this code (only once)
 client.once('ready', () => {
@@ -17,6 +23,11 @@ client.on('interactionCreate', async interaction => {
 	const { commandName } = interaction;
 
 	require('./Commands/' + commandName)(interaction);
+});
+
+// Duration Checker
+client.on('messageCreate', async message => {
+	checkDurations();
 });
 
 // Login to Discord with your client's token

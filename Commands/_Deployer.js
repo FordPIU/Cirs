@@ -8,9 +8,9 @@ const commands = [
 
 	// Warn Command
 	new SlashCommandBuilder()
-		.setName('warn')
+		.setName('warnu')
 		.setDescription('Warn a user.')
-		.setDefaultMemberPermissions(PermissionFlagsBits.KickMembers)
+		.setDefaultMemberPermissions(PermissionFlagsBits.ManageMessages)
 		.addUserOption(option => option
 			.setName('target')
 			.setDescription('Person to warn.')
@@ -22,7 +22,7 @@ const commands = [
 
 	// Kick Command
 	new SlashCommandBuilder()
-		.setName('kick')
+		.setName('kicku')
 		.setDescription('Kick a user.')
 		.setDefaultMemberPermissions(PermissionFlagsBits.KickMembers)
 		.addUserOption(option => option
@@ -40,9 +40,9 @@ const commands = [
 
 	// Ban Command
 	new SlashCommandBuilder()
-	.setName('ban')
+	.setName('banu')
 	.setDescription('Ban a user.')
-	.setDefaultMemberPermissions(PermissionFlagsBits.KickMembers)
+	.setDefaultMemberPermissions(PermissionFlagsBits.BanMembers)
 	.addUserOption(option => option
 		.setName('target')
 		.setDescription('Person to kick.')
@@ -50,6 +50,22 @@ const commands = [
 	.addStringOption(option => option
 		.setName('reason')
 		.setDescription('Reason for the kick.')
+		.setRequired(true))
+	.addStringOption(option => option
+		.setName('type')
+		.setDescription('What type of time to ban the user for.')
+		.setRequired(true)
+		.addChoices(
+			{ name: 'Minutes', value: 'minutes' },
+			{ name: 'Hours',   value: 'hours'   },
+			{ name: 'Days',    value: 'days'    },
+			{ name: 'Weeks',   value: 'weeks'   },
+			{ name: 'Months',  value: 'months'  },
+			{ name: 'Years',   value: 'years'   },
+		))
+	.addIntegerOption(option => option
+		.setName('time')
+		.setDescription('How long is the ban.')
 		.setRequired(true))
 	.addBooleanOption(option => option
 		.setName('sync')
@@ -75,3 +91,8 @@ await rest.put(
 console.log("Registerd " + commands.length + " Commands.");
 }
 Init();
+
+
+/*
+	>	node Commands/_Deployer.js
+*/
