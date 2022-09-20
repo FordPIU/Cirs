@@ -129,18 +129,14 @@ const commands = [
 	.setName('unban')
 	.setDescription('Unban a user.')
 	.setDefaultMemberPermissions(PermissionFlagsBits.BanMembers)
-	.addUserOption(option => option
+	.addStringOption(option => option
 		.setName('target')
-		.setDescription('Person to unban.')
+		.setDescription('User ID to unban.')
 		.setRequired(true))
 	.addStringOption(option => option
 		.setName('reason')
 		.setDescription('Reason for the unban.')
 		.setRequired(true))
-	.addBooleanOption(option => option
-		.setName('sync')
-		.setDescription('Do we sync across all servers.')
-		.setRequired(true)),
 
 ]
 .map(command => command.toJSON());

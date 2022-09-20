@@ -1,61 +1,26 @@
-const { guildList } = require('../Config.json');
-const { logDiscipline, addBan } = require('../Profiles/_Handler');
-const { GetSyncString, ModerationCommandsCheck } = require('./_Utils');
+const { logDiscipline, removeBan, existsBan } = require('../Profiles/_Handler');
 
 module.exports = async function(interaction)
 {
-    let Target = interaction.options.getUser('target');
+    let Target = interaction.options.getString('target');
     let Reason = interaction.options.getString('reason');
-    let Sync   = interaction.options.getBoolean('sync');
-    let SyncString = await GetSyncString(Sync, interaction);
 
     // Console Write
     console.log(`\nCommand Call: Unban
-    Target: ${Target.username}
-    From: ${SyncString}
+    Target: ${Target}
     For: ${Reason}`);
 
-    // Check Permissions
-    let HasPermissions = await ModerationCommandsCheck(Target, interaction);
-    if (HasPermissions == false) { return; }
-
-    // Send Target DM.
-    Target.send(`You have been banned from ${SyncString}.
-        \n**By:** ${interaction.user.username}.
-**For:** ${Reason}.`)
+    // Validate Target
+    let NullCheck = existsBan(Target);
+    if (NullCheck == false) {
+        interaction.reply({ content: `${Target} is not banned.`, fetchReply: true })
             .catch(console.error);
-
-    // Unabn + Remove from Bans.
-    if (Sync) {
-        guildList.forEach(guildId => {
-            var client = require('../Login')();
-            var iguild = client.guilds.cache.get(guildId);
-
-            iguild.members.ban(Target.id, {deleteMessageDays: 0, deleteMessageSeconds: 0, reason: Reason})
-                .catch(console.error);
-        });
-
-        addBan(Target, Time, Type, guildList);
-    } else {
-        interaction.guild.members.ban(Target.id, {deleteMessageDays: 0, deleteMessageSeconds: 0, reason: Reason})
-            .catch(console.error);
-
-        addBan(Target, Time, Type, interaction.guildId);
     }
 
-    // Reply.
-    interaction.reply({ content: `${Target.username} has been banned from ${SyncString} for ${Reason}, with a Duration of ${Time} ${Type}`, fetchReply: true })
-        .catch(console.error);
+    // Unban
+    removeBan(Target, interaction.user.tag);
 
-    // Log.
-    logDiscipline("Ban", Target, {
-        "Reason": Reason,
-        "From": SyncString,
-        "Duration": Time + " " + Type,
-        "Executor": {
-            "Username": interaction.user.username,
-            "Tag": interaction.user.tag,
-            "Id": interaction.user.id,
-        }
-    })
+    // Reply.
+    interaction.reply({ content: `${Target} has been unbanned for ${Reason}`, fetchReply: true })
+        .catch(console.error);
 }

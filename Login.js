@@ -1,6 +1,6 @@
 // Require the necessary discord.js classes
 const { Client, GatewayIntentBits } = require('discord.js');
-const { checkDurations } = require('./Profiles/_Handler');
+const { checkBans } = require('./Profiles/_Handler');
 const { token } = require('./Config.json');
 
 // Create a new client instance
@@ -27,7 +27,7 @@ client.on('interactionCreate', async interaction => {
 
 // Duration Checker
 client.on('messageCreate', async message => {
-	checkDurations();
+	checkBans();
 });
 
 // Login to Discord with your client's token

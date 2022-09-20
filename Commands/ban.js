@@ -1,5 +1,5 @@
 const { guildList } = require('../Config.json');
-const { logDiscipline, addDuration } = require('../Profiles/_Handler');
+const { logDiscipline, addBan } = require('../Profiles/_Handler');
 const { GetSyncString, ModerationCommandsCheck } = require('./_Utils');
 
 module.exports = async function(interaction)
@@ -39,12 +39,12 @@ module.exports = async function(interaction)
                 .catch(console.error);
         });
 
-        addDuration(Target, Time, Type, guildList, "Ban");
+        addBan(Target, Time, Type, guildList, "Ban");
     } else {
         interaction.guild.members.ban(Target.id, {deleteMessageDays: 0, deleteMessageSeconds: 0, reason: Reason})
             .catch(console.error);
 
-        addDuration(Target, Time, Type, interaction.guildId, "Ban");
+            addBan(Target, Time, Type, [interaction.guildId], "Ban");
     }
 
     // Reply.

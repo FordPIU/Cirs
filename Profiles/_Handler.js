@@ -1,3 +1,4 @@
+const { time } = require('console');
 const fs = require('fs');
 const Types = {
     "minutes" :  1,
@@ -32,6 +33,9 @@ async function GetDurationTime(Time, Type)
 
     if (typeMS != null) { return baseMS + (Time * typeMS) };
 }
+
+
+
 exports.GetDurationTimeInMinutes = async function(Time, Type)
 {
     let typeMS = Types[Type]
@@ -41,30 +45,37 @@ exports.GetDurationTimeInMinutes = async function(Time, Type)
 
 exports.logDiscipline = async function(Type, Target, Data)
 {
+    // Init Vars
     let OSTime = await GetTime();
-    let UserProfile = null;
     let Profile = null;
-    let InsertData = {
-        "Time": OSTime,
-        "Type": Type,
-        "Data": Data
-    };
 
+    // Set Time String
+    Data.Time = OSTime;
+
+    // Check if Profile already exists, if not create it.
     if (fs.existsSync('Profiles/Users/' + Target.id + ".json")) {
-        UserProfile = fs.readFileSync('Profiles/Users/' + Target.id + ".json");
+        let UserProfile = fs.readFileSync('Profiles/Users/' + Target.id + ".json");
+
         Profile = JSON.parse(UserProfile);
     } else {
         Profile = {
             "Username": Target.username,
             "Tag": Target.tag,
             "Id": Target.id,
-            "Disciplinary_Actions_Count": 0,
             "Disciplinary_Actions": {}
         }
     }
-    Profile.Disciplinary_Actions_Count += 1;
-    Profile.Disciplinary_Actions[Profile.Disciplinary_Actions_Count] = InsertData;
 
+    // Check if Discipline Type is registered
+    if (Profile.Disciplinary_Actions[Type] == null) { Profile.Disciplinary_Actions[Type] = {} }
+
+    // Get Length of Discipline Type
+    let DATLength = Object.keys(Profile.Disciplinary_Actions[Type]).length;
+    
+    // Post Data
+    Profile.Disciplinary_Actions[Type][DATLength + 1] = Data
+
+    // Write file
     fs.writeFile('Profiles/Users/' + Target.id + ".json", JSON.stringify(Profile), err => {
         if (err) {
             console.error(err);
@@ -74,24 +85,25 @@ exports.logDiscipline = async function(Type, Target, Data)
 
 exports.addBan = async function(Target, Time, Type, GuildId)
 {
+    // Init Vars
     let File = null;
-    if (fs.existsSync('Profiles/ActiveBans.json')) {
-        let FileRaw = fs.readFileSync('Profiles/ActiveBans.json');
-        File = JSON.parse(FileRaw);
-    } else {
-        File = {
-            "Length": 0,
-            "Body": {}
-        }
-    }
 
-    File.Length += 1
-    File.Body[File.Length] = {
+    // Check if Active Bans already exists, if not create it.
+    if (fs.existsSync('Profiles/ActiveBans.json')) {
+        File = JSON.parse(fs.readFileSync('Profiles/ActiveBans.json'));
+    } else { File = {}; }
+
+    // Get Length of Active Bans
+    let FLength = Object.keys(File).length;
+
+    // Post Data
+    File[FLength + 1] = {
         "Affected_Guilds":  GuildId,
         "Deaffect_Epoch":   await GetDurationTime(Time, Type),
         "Target_Id":        Target.id,
     }
 
+    // Write File
     fs.writeFile('Profiles/ActiveBans.json', JSON.stringify(File), err => {
         if (err) {
             console.error(err);
@@ -99,57 +111,126 @@ exports.addBan = async function(Target, Time, Type, GuildId)
     });
 }
 
-exports.checkDurations = async function()
+exports.checkBans = async function()
 {
-    if (fs.existsSync('Profiles/ActiveBans.json')) {
+    // Init Vars
+    let Time = await GetTimeInM();
+    let client = require('../Login')();
 
-        let FileRaw = fs.readFileSync('Profiles/ActiveBans.json');
+    // File Exists check, if not return
+    if (!fs.existsSync('Profiles/ActiveBans.json')) { return; }
 
-        if (FileRaw != null | FileRaw != "") {
+    // Get File and Length
+    let File = JSON.parse(fs.readFileSync('Profiles/ActiveBans.json'));
+    let FLength = Object.keys(File).length;
 
-            let File = JSON.parse(FileRaw);
+    // Check Length
+    if (FLength == 0) { return; }
 
-            if (File != null) {
+    // Go threw every ban
+    for (var [index, banData] of Object.entries(File)) {
+        // Time Check
+        if (banData.Deaffect_Epoch < Time) {
+            // Set Guilds Vars
+            let Guilds = banData.Affected_Guilds;
 
-                let currentTime = await GetTimeInM();
-                let client = require('../Login')();
+            // Go threw every guild
+            Guilds.forEach(guildId => {
+                var iguild = client.guilds.cache.get(guildId);
 
-                for (let i = 1; i < (File.Length + 1); i++) {
-                    let DurationData = File.Body[i];
-
-                    if (DurationData != null) {
-
-                        console.log(currentTime, DurationData.Deaffect_Epoch)
-
-                        if (DurationData.Deaffect_Epoch < currentTime) {
-
-                            DurationData.Affected_Guilds.forEach(guildId => {
-
-                                let iguild = client.guilds.cache.get(guildId);
-
-                                iguild.bans.remove(DurationData.Target_Id)
-                                    .catch(console.error);
-
-                            });
-
-                            File.Body[i] = null;
-
-                        }
-
-                    }
-
-                };
-
-                fs.writeFile('Profiles/ActiveBans.json', JSON.stringify(File), err => {
-                    if (err) {
-                        console.error(err);
-                    }
-                });
-
-            }
-
+                iguild.bans.remove(banData.Target_Id, 'Ban Expired.');
+                console.log(banData.Target_Id + "'s ban has expired.");
+                
+                File[index] = null;
+            });
         }
-
     }
 
+    // Rewrite
+    let NewFile = {};
+    let NewFileI = 0;
+
+    for (var [index, banData] of Object.entries(File)) {
+        if (banData != null ) { NewFileI++; NewFile[NewFileI] = banData }
+    }
+
+    // Write File
+    fs.writeFile('Profiles/ActiveBans.json', JSON.stringify(NewFile), err => {
+        if (err) {
+            console.error(err);
+        }
+    });
+}
+
+exports.removeBan = async function (TargetId, Executor)
+{
+    // Init Vars
+    let client = require('../Login')();
+
+    // File Exists check, if not return
+    if (!fs.existsSync('Profiles/ActiveBans.json')) { return; }
+
+    // Get File and Length
+    let File = JSON.parse(fs.readFileSync('Profiles/ActiveBans.json'));
+    let FLength = Object.keys(File).length;
+
+    // Check Length
+    if (FLength == 0) { return; }
+
+    // Go threw every ban
+    for (var [index, banData] of Object.entries(File)) {
+        // Target Check
+        if (banData.Target_Id == TargetId) {
+            // Set Guilds Vars
+            let Guilds = banData.Affected_Guilds;
+
+            // Go threw every guild
+            Guilds.forEach(guildId => {
+                var iguild = client.guilds.cache.get(guildId);
+
+                iguild.bans.remove(banData.Target_Id, `Unbanned by ${Executor}.`);
+                console.log(`${banData.Target_Id} has been unbanend by ${Executor}.`);
+                
+                File[index] = null;
+            });
+        }
+    }
+
+    // Rewrite
+    let NewFile = {};
+    let NewFileI = 0;
+
+    for (var [index, banData] of Object.entries(File)) {
+        if (banData != null ) { NewFileI++; NewFile[NewFileI] = banData }
+    }
+
+    // Write File
+    fs.writeFile('Profiles/ActiveBans.json', JSON.stringify(NewFile), err => {
+        if (err) {
+            console.error(err);
+        }
+    });
+}
+
+exports.existsBan = async function (TargetId)
+{
+    // File Exists check, if not return
+    if (!fs.existsSync('Profiles/ActiveBans.json')) { return false; }
+
+    // Get File and Length
+    let File = JSON.parse(fs.readFileSync('Profiles/ActiveBans.json'));
+    let FLength = Object.keys(File).length;
+
+    // Check Length
+    if (FLength == 0) { return false; }
+
+    // Go threw every ban
+    for (var [index, banData] of Object.entries(File)) {
+        if (banData.Target_Id == TargetId) {
+            return true;
+        }
+    }
+
+    // Return false
+    return false;
 }
