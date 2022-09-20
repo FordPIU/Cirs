@@ -12,11 +12,11 @@ module.exports = async function(interaction)
     let SyncString = await GetSyncString(Sync, interaction);
 
     // Console Write
-    console.log(`\nCommand Call: Ban User
-        Target: ${Target.username}
-        From: ${SyncString}
-        For: ${Reason}
-        Duration: ${Time} ${Type}`);
+    console.log(`\nCommand Call: Ban
+    Target: ${Target.username}
+    From: ${SyncString}
+    For: ${Reason}
+    Duration: ${Time} ${Type}`);
 
     // Check Permissions
     let HasPermissions = await ModerationCommandsCheck(Target, interaction);
@@ -25,8 +25,8 @@ module.exports = async function(interaction)
     // Send Target DM.
     Target.send(`You have been banned from ${SyncString}.
         \n**By:** ${interaction.user.username}.
-    **For:** ${Reason}.
-    **Duration:** ${Time} ${Type}`)
+**For:** ${Reason}.
+**Duration:** ${Time} ${Type}.`)
             .catch(console.error);
 
     // Ban + Add to Actives.

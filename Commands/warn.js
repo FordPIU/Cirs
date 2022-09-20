@@ -7,7 +7,9 @@ module.exports = async function(interaction)
     let Reason = interaction.options.getString('reason');
 
     // Console Write
-    console.log(`\nCommand Call: Warn User\nTarget: ${Target.username}\nFor: ${Reason}`);
+    console.log(`\nCommand Call: Warn
+    Target: ${Target.username}
+    For: ${Reason}`);
 
     // Check Permissions
     let HasPermissions = await ModerationCommandsCheck(Target, interaction);

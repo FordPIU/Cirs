@@ -1,6 +1,6 @@
 const { guildList } = require('../Config.json');
-const { logDiscipline } = require('../Profiles/_Handler');
-const { GetSyncString, ModerationCommandsCheck } = require('./_Utils')
+const { logDiscipline, addBan } = require('../Profiles/_Handler');
+const { GetSyncString, ModerationCommandsCheck } = require('./_Utils');
 
 module.exports = async function(interaction)
 {
@@ -10,38 +10,48 @@ module.exports = async function(interaction)
     let SyncString = await GetSyncString(Sync, interaction);
 
     // Console Write
-    console.log(`\nCommand Call: Kick User\nTarget: ${Target.username}\nFrom: ${SyncString}\nFor: ${Reason}`);
+    console.log(`\nCommand Call: Unban
+    Target: ${Target.username}
+    From: ${SyncString}
+    For: ${Reason}`);
 
     // Check Permissions
     let HasPermissions = await ModerationCommandsCheck(Target, interaction);
     if (HasPermissions == false) { return; }
 
     // Send Target DM.
-    Target.send(`You have been kicked from ${SyncString}.\n\n**By:** ${interaction.user.username}\n**For:** ${Reason}.`)
-        .catch(console.error);
+    Target.send(`You have been banned from ${SyncString}.
+        \n**By:** ${interaction.user.username}.
+**For:** ${Reason}.`)
+            .catch(console.error);
 
-    // Kick.
+    // Unabn + Remove from Bans.
     if (Sync) {
         guildList.forEach(guildId => {
             var client = require('../Login')();
             var iguild = client.guilds.cache.get(guildId);
 
-            iguild.members.kick(Target.id, Reason)
+            iguild.members.ban(Target.id, {deleteMessageDays: 0, deleteMessageSeconds: 0, reason: Reason})
                 .catch(console.error);
         });
+
+        addBan(Target, Time, Type, guildList);
     } else {
-        interaction.guild.members.kick(Target.id, Reason)
+        interaction.guild.members.ban(Target.id, {deleteMessageDays: 0, deleteMessageSeconds: 0, reason: Reason})
             .catch(console.error);
+
+        addBan(Target, Time, Type, interaction.guildId);
     }
 
     // Reply.
-    interaction.reply({ content: `${Target.username} has been kicked from ${SyncString} for ${Reason}`, fetchReply: true })
+    interaction.reply({ content: `${Target.username} has been banned from ${SyncString} for ${Reason}, with a Duration of ${Time} ${Type}`, fetchReply: true })
         .catch(console.error);
 
     // Log.
-    logDiscipline("Kick", Target, {
+    logDiscipline("Ban", Target, {
         "Reason": Reason,
         "From": SyncString,
+        "Duration": Time + " " + Type,
         "Executor": {
             "Username": interaction.user.username,
             "Tag": interaction.user.tag,

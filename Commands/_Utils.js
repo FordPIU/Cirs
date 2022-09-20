@@ -1,5 +1,5 @@
 const {clientId} = require('../Config.json')
-const {GetTypes} = require('../Profiles/_Handler')
+const {GetDurationTimeInMinutes} = require('../Profiles/_Handler')
 const SyncKickString = "**All Servers**";
 exports.GetSyncString = async function(IsSync, interaction)
 {
@@ -30,4 +30,9 @@ exports.ModerationCommandsCheck = async function(Target, interaction)
         return false; }}
 
     return true;
+}
+
+exports.GetDurationTime = async function(Time, Type)
+{
+    return (await GetDurationTimeInMinutes(Time, Type) * 60000);
 }

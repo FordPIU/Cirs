@@ -1,4 +1,12 @@
 const fs = require('fs');
+const Types = {
+    "minutes" :  1,
+    "hours"   :  60,
+    "days"    :  1440,
+    "weeks"   :  10080,
+    "months"  :  43800,
+    "years"   :  525600
+}
 
 async function GetTime()
 {
@@ -20,15 +28,15 @@ async function GetTimeInM()
 async function GetDurationTime(Time, Type)
 {
     let baseMS = await GetTimeInM();
+    let typeMS = Types[Type]
 
-    if (Type == 'minutes')  { return baseMS + (Time * 1);       }
-    if (Type == 'hours')    { return baseMS + (Time * 60);      }
-    if (Type == 'days')     { return baseMS + (Time * 1440);    }
-    if (Type == 'weeks')    { return baseMS + (Time * 10080);   }
-    if (Type == 'months')   { return baseMS + (Time * 43800);   }
-    if (Type == 'years')    { return baseMS + (Time * 525600);  }
+    if (typeMS != null) { return baseMS + (Time * typeMS) };
+}
+exports.GetDurationTimeInMinutes = async function(Time, Type)
+{
+    let typeMS = Types[Type]
 
-    return null;
+    if (typeMS != null) { return Time * typeMS };
 }
 
 exports.logDiscipline = async function(Type, Target, Data)
@@ -64,11 +72,11 @@ exports.logDiscipline = async function(Type, Target, Data)
     });
 }
 
-exports.addDuration = async function(Target, Time, Type, GuildId, DType)
+exports.addBan = async function(Target, Time, Type, GuildId)
 {
     let File = null;
-    if (fs.existsSync('Profiles/ActiveDurations.json')) {
-        let FileRaw = fs.readFileSync('Profiles/ActiveDurations.json');
+    if (fs.existsSync('Profiles/ActiveBans.json')) {
+        let FileRaw = fs.readFileSync('Profiles/ActiveBans.json');
         File = JSON.parse(FileRaw);
     } else {
         File = {
@@ -82,10 +90,9 @@ exports.addDuration = async function(Target, Time, Type, GuildId, DType)
         "Affected_Guilds":  GuildId,
         "Deaffect_Epoch":   await GetDurationTime(Time, Type),
         "Target_Id":        Target.id,
-        "Duration_Type":    DType
     }
 
-    fs.writeFile('Profiles/ActiveDurations.json', JSON.stringify(File), err => {
+    fs.writeFile('Profiles/ActiveBans.json', JSON.stringify(File), err => {
         if (err) {
             console.error(err);
         }
@@ -94,9 +101,9 @@ exports.addDuration = async function(Target, Time, Type, GuildId, DType)
 
 exports.checkDurations = async function()
 {
-    if (fs.existsSync('Profiles/ActiveDurations.json')) {
+    if (fs.existsSync('Profiles/ActiveBans.json')) {
 
-        let FileRaw = fs.readFileSync('Profiles/ActiveDurations.json');
+        let FileRaw = fs.readFileSync('Profiles/ActiveBans.json');
 
         if (FileRaw != null | FileRaw != "") {
 
@@ -133,7 +140,7 @@ exports.checkDurations = async function()
 
                 };
 
-                fs.writeFile('Profiles/ActiveDurations.json', JSON.stringify(File), err => {
+                fs.writeFile('Profiles/ActiveBans.json', JSON.stringify(File), err => {
                     if (err) {
                         console.error(err);
                     }
