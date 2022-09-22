@@ -1,28 +1,19 @@
 const { guildList } = require('../Config.json');
-const { GetSyncString, ModerationCommandsCheck } = require('./_Utils');
+const { CheckTargetPermissions, SendNotificationDM, SendNotificationReply } = require('../Utilities/Cmd_Moderation');
 
-module.exports = async function(interaction)
+module.exports = async function(interaction, commandData)
 {
-    let Target = interaction.options.getUser('target');
-    let Reason = interaction.options.getString('reason');
-    let Sync   = interaction.options.getBoolean('sync');
-    let SyncString = await GetSyncString(Sync, interaction);
-
-    // Console Write
-    console.log(`\nCommand Call: Unmute
-    Target: ${Target.username}
-    From: ${SyncString}
-    For: ${Reason}`);
+    let Target      = commandData.Target;
+    let Reason      = commandData.Reason;
+    let Sync        = commandData.IsSync;
+    let SyncString  = commandData.SyncString;
 
     // Check Permissions
-    let HasPermissions = await ModerationCommandsCheck(Target, interaction);
+    let HasPermissions = await CheckTargetPermissions(Target, interaction);
     if (HasPermissions == false) { return; }
 
     // Send Target DM.
-    Target.send(`You have been unmuted from ${SyncString}.
-        \n**By:** ${interaction.user.username}.
-**For:** ${Reason}.`)
-            .catch(console.error);
+    SendNotificationDM("unmuted", commandData);
 
     // Unmute
     if (Sync) {
@@ -44,6 +35,5 @@ module.exports = async function(interaction)
     }
 
     // Reply.
-    interaction.reply({ content: `${Target.username} has been unmuted from ${SyncString} for ${Reason}.`, fetchReply: true })
-        .catch(console.error);
+    SendNotificationReply("unmuted", interaction, commandData);
 }

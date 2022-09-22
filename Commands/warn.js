@@ -1,30 +1,22 @@
-const { logDiscipline } = require('../Profiles/_Handler');
-const { ModerationCommandsCheck } = require('./_Utils')
+const { CheckTargetPermissions, SendNotificationDM, SendNotificationReply, NewDisciplinaryAction } = require('../Utilities/Cmd_Moderation');
 
-module.exports = async function(interaction)
+module.exports = async function(interaction, commandData)
 {
-    let Target = interaction.options.getUser('target');
-    let Reason = interaction.options.getString('reason');
-
-    // Console Write
-    console.log(`\nCommand Call: Warn
-    Target: ${Target.username}
-    For: ${Reason}`);
+    let Target      = commandData.Target;
+    let Reason      = commandData.Reason;
 
     // Check Permissions
-    let HasPermissions = await ModerationCommandsCheck(Target, interaction);
+    let HasPermissions = await CheckTargetPermissions(Target, interaction);
     if (HasPermissions == false) { return; }
 
     // Send Target DM.
-    Target.send(`You have been warned.\n\n**By:** ${interaction.user.username}\n**For:** ${Reason}.`)
-        .catch(console.error);
+    SendNotificationDM("warned", commandData);
 
     // Reply.
-    interaction.reply({ content: `${Target.username} has been warned for ${Reason}`, fetchReply: true })
-        .catch(console.error);
+    SendNotificationReply("warned", interaction, commandData);
 
     // Log.
-    logDiscipline("Warn", Target, {
+    NewDisciplinaryAction("Warn", Target, {
         "Reason": Reason,
         "Executor": {
             "Username": interaction.user.username,

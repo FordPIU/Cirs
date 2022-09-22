@@ -1,27 +1,19 @@
 const { guildList } = require('../Config.json');
-const { logDiscipline } = require('../Profiles/_Handler');
-const { GetSyncString, ModerationCommandsCheck } = require('./_Utils')
+const { CheckTargetPermissions, SendNotificationDM, SendNotificationReply, NewDisciplinaryAction } = require('../Utilities/Cmd_Moderation');
 
-module.exports = async function(interaction)
+module.exports = async function(interaction, commandData)
 {
-    let Target = interaction.options.getUser('target');
-    let Reason = interaction.options.getString('reason');
-    let Sync   = interaction.options.getBoolean('sync');
-    let SyncString = await GetSyncString(Sync, interaction);
-
-    // Console Write
-    console.log(`\nCommand Call: Kick
-    Target: ${Target.username}
-    From: ${SyncString}
-    For: ${Reason}`);
+    let Target      = commandData.Target;
+    let Reason      = commandData.Reason;
+    let Sync        = commandData.IsSync;
+    let SyncString  = commandData.SyncString;
 
     // Check Permissions
-    let HasPermissions = await ModerationCommandsCheck(Target, interaction);
+    let HasPermissions = await CheckTargetPermissions(Target, interaction);
     if (HasPermissions == false) { return; }
 
     // Send Target DM.
-    Target.send(`You have been kicked from ${SyncString}.\n\n**By:** ${interaction.user.username}\n**For:** ${Reason}.`)
-        .catch(console.error);
+    SendNotificationDM("kicked", commandData);
 
     // Kick.
     if (Sync) {
@@ -42,11 +34,10 @@ module.exports = async function(interaction)
     }
 
     // Reply.
-    interaction.reply({ content: `${Target.username} has been kicked from ${SyncString} for ${Reason}`, fetchReply: true })
-        .catch(console.error);
+    SendNotificationReply("kicked", interaction, commandData);
 
     // Log.
-    logDiscipline("Kick", Target, {
+    NewDisciplinaryAction("Kick", Target, {
         "Reason": Reason,
         "From": SyncString,
         "Executor": {

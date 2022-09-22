@@ -1,7 +1,11 @@
 // Require the necessary discord.js classes
 const { Client, GatewayIntentBits } = require('discord.js');
-const { checkBans } = require('./Profiles/_Handler');
+
 const { token } = require('./Config.json');
+
+const { CheckBanDurations, GetServerStringFromIsSync } = require('./Utilities/Cmd_Moderation');
+const { GetEpochMinutesFromParams } = require('./Utilities/Time');
+const { logcommand } = require('./Utilities/Cmd')
 
 // Create a new client instance
 const client = new Client({
@@ -20,14 +24,34 @@ client.once('ready', () => {
 client.on('interactionCreate', async interaction => {
 	if (!interaction.isChatInputCommand()) return;
 
-	const { commandName } = interaction;
+	// Compiler
+	let { commandName } 	= interaction;
+	let Exector 			= interaction.user;
+	let Target 				= interaction.options.getUser('target');
+	let Reason 				= interaction.options.getString('reason');
+    let Type   				= interaction.options.getString('type');
+    let Time   				= interaction.options.getInteger('time');
+	let Sync   				= interaction.options.getBoolean('sync');
+    let SyncString 			= await GetServerStringFromIsSync(Sync, interaction);
+	let TimeDuration		= await GetEpochMinutesFromParams(Type, Time)
+	let commandData = {
+		"Exector": 		Exector,
+		"Target": 		Target,
+		"Reason":		Reason,
+		"TimeType": 	Type,
+		"TimeInt": 		Time,
+		"IsSync": 		Sync,
+		"SyncString": 	SyncString,
+		"Duration":		TimeDuration,
+	}
 
-	require('./Commands/' + commandName)(interaction);
+	require('./Commands/' + commandName)(interaction, commandData);
+	logcommand(commandName, Target, Exector, SyncString, Reason, TimeDuration);
 });
 
 // Duration Checker
 client.on('messageCreate', async message => {
-	checkBans();
+	CheckBanDurations();
 });
 
 // Login to Discord with your client's token

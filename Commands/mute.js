@@ -1,35 +1,22 @@
 const { guildList } = require('../Config.json');
-const { logDiscipline } = require('../Profiles/_Handler');
-const { GetSyncString, ModerationCommandsCheck, GetDurationTime } = require('./_Utils');
+const { CheckTargetPermissions, SendNotificationDM, SendNotificationReply, NewDisciplinaryAction } = require('../Utilities/Cmd_Moderation');
 
-module.exports = async function(interaction)
+module.exports = async function(interaction, commandData)
 {
-    let Target = interaction.options.getUser('target');
-    let Reason = interaction.options.getString('reason');
-    let Type   = interaction.options.getString('type');
-    let Time   = interaction.options.getInteger('time');
-    let Sync   = interaction.options.getBoolean('sync');
-    let SyncString = await GetSyncString(Sync, interaction);
-    let TimeMs = await GetDurationTime(Time, Type);
-
-    // Console Write
-    console.log(`\nCommand Call: Mute
-    Target: ${Target.username}
-    From: ${SyncString}
-    For: ${Reason}
-    Duration: ${Time} ${Type}
-    Miliseconds: ${TimeMs}`);
+    let Target      = commandData.Target;
+    let Reason      = commandData.Reason;
+    let Sync        = commandData.IsSync;
+    let SyncString  = commandData.SyncString;
+    let Type        = commandData.TimeType;
+    let Time        = commandData.TimeInt;
+    let TimeMs      = commandData.Duration * 60000;
 
     // Check Permissions
-    let HasPermissions = await ModerationCommandsCheck(Target, interaction);
+    let HasPermissions = await CheckTargetPermissions(Target, interaction);
     if (HasPermissions == false) { return; }
 
     // Send Target DM.
-    Target.send(`You have been muted from ${SyncString}.
-        \n**By:** ${interaction.user.username}.
-**For:** ${Reason}.
-**Duration:** ${Time} ${Type}`)
-            .catch(console.error);
+    SendNotificationDM("muted", commandData);
 
     // Mute
     if (Sync) {
@@ -51,11 +38,10 @@ module.exports = async function(interaction)
     }
 
     // Reply.
-    interaction.reply({ content: `${Target.username} has been muted from ${SyncString} for ${Reason}, with a Duration of ${Time} ${Type}`, fetchReply: true })
-        .catch(console.error);
+    SendNotificationReply("muted", interaction, commandData);
 
     // Log.
-    logDiscipline("Mute", Target, {
+    NewDisciplinaryAction("Mute", Target, {
         "Reason": Reason,
         "From": SyncString,
         "Duration": Time + " " + Type,

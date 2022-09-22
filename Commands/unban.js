@@ -1,26 +1,26 @@
-const { logDiscipline, removeBan, existsBan } = require('../Profiles/_Handler');
+const { CheckTargetPermissions, DoesBanExist, RemoveBan } = require('../Utilities/Cmd_Moderation');
 
-module.exports = async function(interaction)
+module.exports = async function(interaction, commandData)
 {
-    let Target = interaction.options.getString('target');
-    let Reason = interaction.options.getString('reason');
+    let Target      = commandData.Target;
+    let Reason      = commandData.Reason;
 
-    // Console Write
-    console.log(`\nCommand Call: Unban
-    Target: ${Target}
-    For: ${Reason}`);
+    // Check Permissions
+    let HasPermissions = await CheckTargetPermissions(Target, interaction);
+    if (HasPermissions == false) { return; }
 
     // Validate Target
-    let NullCheck = existsBan(Target);
-    if (NullCheck == false) {
-        interaction.reply({ content: `${Target} is not banned.`, fetchReply: true })
+    if (DoesBanExist(Target) == false) {
+        interaction.reply({ content: `<@${Target}> is not banned.`, fetchReply: true })
             .catch(console.error);
+
+        return;
     }
 
     // Unban
-    removeBan(Target, interaction.user.tag);
+    RemoveBan(Target, interaction.user.tag);
 
     // Reply.
-    interaction.reply({ content: `${Target} has been unbanned for ${Reason}`, fetchReply: true })
+    interaction.reply({ content: `<@${Target}> has been unbanned for ${Reason}`, fetchReply: true })
         .catch(console.error);
 }
